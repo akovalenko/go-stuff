@@ -198,7 +198,7 @@ func TargetAny[K comparable](target ...K) func(K) bool {
 // returning true when all specified targets were reached. Mutates a
 // shared state inside, so should constructed once per call to
 // Dijkstra.
-// 
+//
 // Note: with no arguments, the closure returns true immediately, so
 // Dijkstra will stop after settling the start node. This follows from
 // vacuous truth but may be surprising.
