@@ -131,6 +131,43 @@ func TestLabyrinthTargetAll(t *testing.T) {
 	}
 }
 
+// TestLabyrinthTargetNil verifies that Dijkstra, given nil as
+// isTarget, runs until both targets are settled, and that BuildRoute
+// produces valid paths of matching length.
+func TestLabyrinthTargetNil(t *testing.T) {
+	board := parseBoard(labyrinth)
+	start := findStart(board)
+	targets := findTargets(board)
+
+	dists, prevs, err := Dijkstra(start, boardNeighbors(board), nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	wantDist := []int{5, 7}
+	for i, target := range targets {
+		d, ok := dists[target]
+		if !ok {
+			t.Errorf("target %v not reached", target)
+			continue
+		}
+		if d != wantDist[i] {
+			t.Errorf("target %v: expected dist %d, got %d", target, wantDist[i], d)
+		}
+		route := BuildRoute(start, target, prevs)
+		if route == nil {
+			t.Errorf("BuildRoute returned nil for target %v", target)
+			continue
+		}
+		if route[0] != start || route[len(route)-1] != target {
+			t.Errorf("route endpoints wrong for %v: %v", target, route)
+		}
+		if len(route)-1 != d {
+			t.Errorf("route length %d != distance %d for target %v", len(route)-1, d, target)
+		}
+	}
+}
+
 func TestAddOverflowUint8(t *testing.T) {
 	if _, ov := AddOverflow[uint8](200, 100); !ov {
 		t.Error("expected overflow: uint8(200+100)")
