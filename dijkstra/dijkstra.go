@@ -103,7 +103,9 @@ func NewIndexedHeap[K comparable, D Numeric]() *IndexedHeap[K, D] {
 	}
 }
 
-// AddOverflow adds two numbers with overflow detection
+// AddOverflow adds two numbers with overflow detection.  For floats,
+// it also returns overflow==true if there is a NaN input, which is
+// deemed right in the context of Dijkstra.
 func AddOverflow[T Numeric](a, b T) (sum T, overflow bool) {
 	sum = a + b
 	if sum-sum != 0 {
@@ -144,6 +146,9 @@ var (
 // vertex, map[K]K mapping each vertex (except start) to the previous
 // vertex along one of the shortest paths, allowing to build an
 // example shortest path from start to any vertex encountered.
+//
+// On errors, ErrNeighborsMismatch, ErrNegativeDistance, ErrOverflow
+// can be returned (with nil maps)
 func Dijkstra[K comparable, D Numeric](start K, neighbors func(K) ([]K, []D),
 	isTarget func(K) bool) (map[K]D, map[K]K, error) {
 	ih := NewIndexedHeap[K, D]()
@@ -215,7 +220,8 @@ func TargetAll[K comparable](target ...K) func(K) bool {
 
 // BuildRoute takes a "prevs" map from Dijkstra and builds a list of
 // nodes starting at start, ending at end, which is a possible
-// shortest path from start to end.
+// shortest path from start to end. If there is no way to reach start
+// from end following links in prevs[], BuildRoute returns nil.
 func BuildRoute[K comparable](start, end K, prevs map[K]K) []K {
 	here := end
 	var route []K
